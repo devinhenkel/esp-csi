@@ -82,6 +82,10 @@ This project must deliver an end-to-end ESP-based CSI pipeline:
 
 ## 5. Hardware and Firmware Requirements
 
+### 5.0 Firmware Language Requirement
+1. All ESP32 firmware for both transmitter and receiver shall be written in C++.
+2. ESP-IDF-compatible C++ APIs and project structure shall be used.
+
 ## 5.1 Recommended Hardware
 1. ESP32-S3 or ESP32-C6 (receiver preferred with supported CSI APIs).
 2. ESP32 (transmitter) configured as AP/station traffic source.
