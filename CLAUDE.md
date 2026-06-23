@@ -1,3 +1,112 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+---
+
+## Project Overview
+
+ESP-CSI Environmental Presence and Positioning System — a Wi-Fi CSI pipeline for indoor occupancy detection and zone-level positioning. The system has four components:
+
+1. **`firmware/transmitter/`** — ESP32 firmware that emits a stable Wi-Fi packet stream on a fixed channel
+2. **`firmware/receiver/`** — ESP32-S3/C6 firmware that captures CSI frames and computes features
+3. **`bridge/`** — Backend service (Python or Node.js) that ingests device data, runs inference, and broadcasts over WebSocket
+4. **`web/`** — Plain HTML/CSS/JS single-page dashboard (`index.html`, `styles.css`, `app.js`)
+
+A shared JSON schema defines the wire format between all four components (see Sections 5.2.1, 5.3.2, 6.3, and 7.5 in the PRD below).
+
+---
+
+## Development Commands
+
+### Firmware (ESP-IDF)
+
+Both firmware projects use ESP-IDF. Set up the toolchain once:
+
+```bash
+. $IDF_PATH/export.sh          # activate ESP-IDF environment
+```
+
+Build and flash (run from `firmware/transmitter/` or `firmware/receiver/`):
+
+```bash
+idf.py build
+idf.py -p /dev/ttyUSB0 flash
+idf.py -p /dev/ttyUSB0 monitor   # serial console / log output
+idf.py -p /dev/ttyUSB0 flash monitor  # flash then open monitor
+```
+
+Configure target chip (must match hardware):
+
+```bash
+idf.py set-target esp32      # transmitter
+idf.py set-target esp32s3    # receiver (preferred)
+idf.py menuconfig            # adjust sdkconfig options
+```
+
+Run ESP-IDF component unit tests (when tests are added under `test/`):
+
+```bash
+idf.py -C test build flash monitor
+```
+
+### Backend Bridge
+
+Commands will depend on chosen language. Likely:
+
+```bash
+# Python
+pip install -r requirements.txt
+python bridge/main.py
+
+# Node.js
+npm install
+node bridge/index.js
+```
+
+### Web Dashboard
+
+No build step — open `web/index.html` directly in a browser. Enable mock-data mode in `app.js` to develop without hardware:
+
+```js
+const MOCK_MODE = true;   // toggle at top of app.js
+```
+
+---
+
+## Architecture Notes
+
+### Data Flow
+
+```
+Tx firmware  →  RF  →  Rx firmware  →  UART/WebSocket  →  Bridge  →  WebSocket  →  Web dashboard
+```
+
+- Tx emits 100 packets/sec on a fixed channel (default: ch 6, 20 MHz).
+- Rx filters by Tx MAC, maintains a ring buffer, and outputs JSON lines in either `raw` or `feature` mode.
+- Bridge normalizes timestamps, runs the inference window (0.5–2.0 s), and fans out `inference.state` / `telemetry.*` / `system.alert` WebSocket messages.
+- Dashboard keeps rolling 300-point buffers, reconnects with exponential backoff, and marks status degraded after 5 s of silence.
+
+### Key Contracts
+
+- **Tx telemetry** — `{"device_id", "ts_ms", "channel", "tx_rate_hz", "uptime_s", "status"}`
+- **Rx feature payload** — `{"device_id", "tx_id", "ts_ms", "seq", "rssi", "features": {amp_mean, amp_std, amp_p2p, phase_var, energy_delta}, "health": {buffer_fill_pct, packet_loss_pct, uptime_s}}`
+- **Inference output** — `{"ts_ms", "occupancy": {occupied, probability}, "position": {zone, confidence}, "system": {active_tx, active_rx, stream_ok}}`
+- **WebSocket message envelope** — `{"type": "<telemetry.tx|telemetry.rx|inference.state|system.alert>", "payload": {...}}`
+
+### Firmware Module Boundaries
+
+- Tx: packet generator task, serial command parser (`set_rate`, `set_channel`, `start_tx`, `stop_tx`), heartbeat timer.
+- Rx: CSI callback → ring buffer → feature extractor → transport (UART and/or MQTT/WebSocket client), watchdog + auto-reconnect.
+
+### Inference (Bridge)
+
+- Rule-based threshold model for MVP; pluggable to logistic regression / random forest.
+- Calibration saves an empty-room baseline; inference normalizes live features against it before classification.
+- Emit `P(occupied)` and zone label with confidence for every inference window.
+
+---
+
 # Product Requirements Document (PRD)
 
 ## Product Name

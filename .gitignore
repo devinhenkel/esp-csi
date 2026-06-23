@@ -1,0 +1,10 @@
+build/
+sdkconfig
+sdkconfig.old
+.cache/
+*.pyc
+__pycache__/
+.env
+*.log
+calibration_*.json
+bridge/__pycache__/
