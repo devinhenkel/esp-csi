@@ -1,0 +1,27 @@
+# WiFi config
+CONFIG_ESP_WIFI_SSID="your_wifi_ssid"
+CONFIG_ESP_WIFI_PASSWORD="your_wifi_password"
+CONFIG_ESP_RX_DEVICE_ID="rx-01"
+CONFIG_ESP_TX_DEVICE_ID="tx-01"
+
+# Bridge endpoint — IP of machine running bridge/main.py
+CONFIG_ESP_BRIDGE_HOST="192.168.1.100"
+CONFIG_ESP_BRIDGE_PORT=8765
+CONFIG_ESP_BRIDGE_PATH="/ingest/rx"
+
+# TX MAC filter — set to transmitter MAC or leave empty for all
+CONFIG_ESP_TX_MAC_FILTER=""
+
+# Output mode: "feature" or "raw"
+CONFIG_ESP_OUTPUT_MODE="feature"
+
+# Feature window size in frames
+CONFIG_ESP_FEATURE_WINDOW=20
+
+# System
+CONFIG_ESP_SYSTEM_EVENT_TASK_STACK_SIZE=4096
+CONFIG_FREERTOS_HZ=1000
+CONFIG_ESP_CONSOLE_UART_DEFAULT=y
+
+# Larger main task stack for CSI processing
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=8192

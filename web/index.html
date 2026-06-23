@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ESP-CSI Monitor</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ── Status bar ────────────────────────────────────────────────── -->
+  <header>
+    <h1>ESP-CSI Monitor</h1>
+    <div id="conn-status" class="pill offline">Disconnected</div>
+  </header>
+
+  <main>
+    <!-- ── Device health cards ──────────────────────────────────────── -->
+    <section class="cards">
+      <div class="card" id="card-tx">
+        <div class="card-label">Transmitter</div>
+        <div class="card-value" id="tx-status">—</div>
+        <div class="card-sub" id="tx-rate">—</div>
+      </div>
+      <div class="card" id="card-rx">
+        <div class="card-label">Receivers</div>
+        <div class="card-value" id="rx-count">—</div>
+        <div class="card-sub" id="rx-health">—</div>
+      </div>
+      <div class="card" id="card-loss">
+        <div class="card-label">Packet Loss</div>
+        <div class="card-value" id="pkt-loss">—</div>
+        <div class="card-sub" id="pkt-rssi">RSSI —</div>
+      </div>
+      <div class="card" id="card-latency">
+        <div class="card-label">Latency</div>
+        <div class="card-value" id="latency">—</div>
+        <div class="card-sub">end-to-end</div>
+      </div>
+    </section>
+
+    <!-- ── Occupancy + Zone ─────────────────────────────────────────── -->
+    <section class="occupancy-zone">
+      <div class="occupancy-widget">
+        <div id="occ-state" class="occ-state empty">EMPTY</div>
+        <div class="gauge-wrap">
+          <canvas id="gauge" width="180" height="100"></canvas>
+          <div id="occ-prob">0%</div>
+        </div>
+      </div>
+
+      <div class="zone-map-wrap">
+        <div class="zone-map-title">Zone Map</div>
+        <canvas id="zone-map" width="300" height="200"></canvas>
+        <div id="zone-label">—</div>
+        <div id="zone-conf">Confidence —</div>
+      </div>
+    </section>
+
+    <!-- ── Time-series chart ────────────────────────────────────────── -->
+    <section class="chart-wrap">
+      <div class="chart-title">
+        CSI Features
+        <span class="legend">
+          <span class="dot dot-std"></span> amp_std
+          <span class="dot dot-energy"></span> energy_delta
+          <span class="dot dot-phase"></span> phase_var
+        </span>
+      </div>
+      <canvas id="timeseries" width="900" height="200"></canvas>
+    </section>
+
+    <!-- ── Controls ─────────────────────────────────────────────────── -->
+    <section class="controls">
+      <button id="btn-mock" class="btn secondary">Mock Data: OFF</button>
+      <button id="btn-calibrate-start" class="btn secondary">Start Calibration</button>
+      <button id="btn-calibrate-commit" class="btn secondary" disabled>Commit Baseline</button>
+      <div class="zone-cfg">
+        <label>Zones (comma-separated):
+          <input id="zone-names" type="text" value="zone_1,zone_2,zone_3" />
+        </label>
+      </div>
+    </section>
+
+    <!-- ── Event log ────────────────────────────────────────────────── -->
+    <section class="event-log-wrap">
+      <div class="chart-title">Event Log</div>
+      <div id="event-log"></div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
